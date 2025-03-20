@@ -3,72 +3,775 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ジャパンランナー - シンプルテスト</title>
+    <title>ジャパンランナー - 日本文化を駆け抜けるエンドレスランナーゲーム</title>
     <style>
-        body { font-family: sans-serif; text-align: center; padding: 20px; }
-        canvas { border: 1px solid #000; margin: 20px auto; display: block; }
-        button { padding: 10px 20px; font-size: 16px; margin: 10px; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Hiragino Kaku Gothic Pro', 'メイリオ', sans-serif;
+            background-color: #f0f0f0;
+            color: #333;
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-image: linear-gradient(to bottom, #87CEEB, #E0F7FA);
+        }
+        
+        .game-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            height: 600px;
+            margin: 0 auto;
+            overflow: hidden;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            background-color: #fff;
+        }
+        
+        .game-start-screen {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background-color: #3498db;
+            z-index: 10;
+            padding: 20px;
+            text-align: center;
+            color: #fff;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+        }
+        
+        .game-start-screen h1 {
+            font-size: 3em;
+            margin-bottom: 20px;
+            color: #FF4081;
+            -webkit-text-stroke: 1px #000;
+        }
+        
+        .game-start-screen p {
+            font-size: 1.2em;
+            margin-bottom: 30px;
+        }
+        
+        #start-button {
+            padding: 15px 30px;
+            font-size: 1.2em;
+            background-color: #FF4081;
+            color: white;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        #start-button:hover {
+            background-color: #E91E63;
+            transform: translateY(-3px);
+            box-shadow: 0 6px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        .instructions {
+            margin-top: 30px;
+            background-color: rgba(0, 0, 0, 0.6);
+            padding: 15px;
+            border-radius: 10px;
+            max-width: 300px;
+        }
+        
+        .instructions h2 {
+            margin-bottom: 10px;
+            font-size: 1.5em;
+        }
+        
+        .instructions p {
+            margin: 5px 0;
+            font-size: 1em;
+        }
+        
+        .game-play-screen {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: none;
+        }
+        
+        #game-canvas {
+            width: 100%;
+            height: 100%;
+            background-color: #87CEEB;
+        }
+        
+        .game-stats {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background-color: rgba(0, 0, 0, 0.6);
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 1.2em;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        
+        .game-over-screen {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background-color: rgba(0, 0, 0, 0.8);
+            z-index: 20;
+            color: white;
+            text-align: center;
+        }
+        
+        .game-over-screen h2 {
+            font-size: 3em;
+            margin-bottom: 20px;
+            color: #FF4081;
+        }
+        
+        .final-score, .high-score {
+            font-size: 1.5em;
+            margin: 10px 0;
+        }
+        
+        #restart-button {
+            margin-top: 30px;
+            padding: 15px 30px;
+            font-size: 1.2em;
+            background-color: #FF4081;
+            color: white;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        #restart-button:hover {
+            background-color: #E91E63;
+            transform: translateY(-3px);
+        }
+        
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #fff;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+        
+        .loading-text {
+            font-size: 1.5em;
+            margin-bottom: 20px;
+        }
+        
+        .progress-bar {
+            width: 300px;
+            height: 20px;
+            background-color: #eee;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        .progress {
+            width: 0%;
+            height: 100%;
+            background-color: #FF4081;
+            transition: width 0.3s ease;
+        }
+        
+        @media (max-width: 768px) {
+            .game-container {
+                width: 100%;
+                height: 100vh;
+                max-width: none;
+                border-radius: 0;
+            }
+            
+            .game-start-screen h1 {
+                font-size: 2.5em;
+            }
+            
+            .instructions {
+                max-width: 90%;
+            }
+        }
     </style>
 </head>
 <body>
-    <h1>ジャパンランナー - シンプルテスト</h1>
-    <canvas id="game-canvas" width="800" height="400"></canvas>
-    <button id="test-button">テスト実行</button>
-    <div id="status">ステータス: 準備完了</div>
+    <div class="game-container">
+        <div class="game-start-screen">
+            <h1>ジャパンランナー</h1>
+            <p>日本文化を駆け抜けるエンドレスランナーゲーム</p>
+            <button id="start-button">ゲームスタート</button>
+            <div class="instructions">
+                <h2>操作方法</h2>
+                <p>← → : 左右移動</p>
+                <p>↑ : ジャンプ</p>
+                <p>↓ : スライディング</p>
+            </div>
+        </div>
+        
+        <div class="game-play-screen">
+            <canvas id="game-canvas"></canvas>
+            <div class="game-stats">
+                <div class="score">スコア: <span id="score">0</span></div>
+                <div class="coins">コイン: <span id="coins">0</span></div>
+                <div class="distance">距離: <span id="distance">0</span>m</div>
+            </div>
+        </div>
+        
+        <div class="game-over-screen">
+            <h2>ゲームオーバー</h2>
+            <div class="final-score">最終スコア: <span id="final-score">0</span></div>
+            <div class="high-score">ハイスコア: <span id="high-score">0</span></div>
+            <button id="restart-button">もう一度プレイ</button>
+        </div>
+    </div>
+    
+    <div class="loading-screen">
+        <div class="loading-text">読み込み中...</div>
+        <div class="progress-bar">
+            <div class="progress"></div>
+        </div>
+    </div>
 
     <script>
-        // シンプルなテスト用スクリプト
+        // シンプルなゲーム実装
         document.addEventListener('DOMContentLoaded', function() {
+            // DOM要素の取得
             const canvas = document.getElementById('game-canvas');
             const ctx = canvas.getContext('2d');
-            const statusDiv = document.getElementById('status');
-            const testButton = document.getElementById('test-button');
+            const startScreen = document.querySelector('.game-start-screen');
+            const playScreen = document.querySelector('.game-play-screen');
+            const gameOverScreen = document.querySelector('.game-over-screen');
+            const loadingScreen = document.querySelector('.loading-screen');
+            const progressBar = document.querySelector('.progress');
             
-            // キャンバスの初期描画
-            ctx.fillStyle = '#87CEEB';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            // スコア表示要素
+            const scoreElement = document.getElementById('score');
+            const coinsElement = document.getElementById('coins');
+            const distanceElement = document.getElementById('distance');
+            const finalScoreElement = document.getElementById('final-score');
+            const highScoreElement = document.getElementById('high-score');
             
-            ctx.fillStyle = '#8BC34A';
-            ctx.fillRect(0, 300, canvas.width, 100);
+            // ボタン要素
+            const startButton = document.getElementById('start-button');
+            const restartButton = document.getElementById('restart-button');
             
-            // プレイヤーの描画
-            ctx.fillStyle = '#FF4081';
-            ctx.fillRect(100, 250, 50, 50);
+            // ゲーム設定
+            const GAME_CONFIG = {
+                canvasWidth: 800,
+                canvasHeight: 600,
+                playerWidth: 40,
+                playerHeight: 60,
+                playerSpeed: 5,
+                jumpForce: 12,
+                gravity: 0.5,
+                initialSpeed: 3,
+                maxSpeed: 10,
+                speedIncrement: 0.0005,
+                laneWidth: 200,
+                lanes: 3,
+                obstacleChance: 0.02,
+                coinChance: 0.05,
+                coinValue: 10
+            };
             
-            // テキスト描画
-            ctx.fillStyle = '#000';
-            ctx.font = '20px sans-serif';
-            ctx.fillText('ジャパンランナー テスト', 20, 30);
+            // ゲーム状態
+            let gameState = 0; // 0: ロード中, 1: スタート画面, 2: プレイ中, 3: ゲームオーバー
+            let score = 0;
+            let coins = 0;
+            let distance = 0;
+            let speed = GAME_CONFIG.initialSpeed;
+            let highScore = getHighScore();
             
-            // テストボタンのイベントリスナー
-            testButton.addEventListener('click', function() {
-                statusDiv.textContent = 'ステータス: テスト実行中...';
-                
-                // アニメーションテスト
-                let x = 100;
-                const animate = function() {
-                    // 背景クリア
-                    ctx.fillStyle = '#87CEEB';
-                    ctx.fillRect(0, 0, canvas.width, canvas.height);
-                    
-                    ctx.fillStyle = '#8BC34A';
-                    ctx.fillRect(0, 300, canvas.width, 100);
-                    
-                    // プレイヤー描画
-                    ctx.fillStyle = '#FF4081';
-                    ctx.fillRect(x, 250, 50, 50);
-                    
-                    // 位置更新
-                    x += 5;
-                    if (x < canvas.width) {
-                        requestAnimationFrame(animate);
-                    } else {
-                        statusDiv.textContent = 'ステータス: テスト完了';
+            // ゲームオブジェクト
+            let player = null;
+            let obstacles = [];
+            let coinItems = [];
+            
+            // キー入力状態
+            const keys = {
+                ArrowLeft: false,
+                ArrowRight: false,
+                ArrowUp: false,
+                ArrowDown: false
+            };
+            
+            // 時間管理
+            let lastTime = 0;
+            
+            // キャンバスのサイズ設定
+            function resizeCanvas() {
+                const container = canvas.parentElement;
+                canvas.width = container.clientWidth;
+                canvas.height = container.clientHeight;
+                GAME_CONFIG.canvasWidth = canvas.width;
+                GAME_CONFIG.canvasHeight = canvas.height;
+                GAME_CONFIG.laneWidth = canvas.width / GAME_CONFIG.lanes;
+            }
+            
+            // イベントリスナーの設定
+            function setupEventListeners() {
+                // キーボード入力
+                window.addEventListener('keydown', (e) => {
+                    if (keys.hasOwnProperty(e.key)) {
+                        keys[e.key] = true;
+                        e.preventDefault();
                     }
-                };
+                });
                 
-                animate();
-            });
+                window.addEventListener('keyup', (e) => {
+                    if (keys.hasOwnProperty(e.key)) {
+                        keys[e.key] = false;
+                    }
+                });
+                
+                // タッチ操作（モバイル対応）
+                canvas.addEventListener('touchstart', (e) => {
+                    const touch = e.touches[0];
+                    const x = touch.clientX;
+                    const y = touch.clientY;
+                    
+                    if (y > canvas.height * 0.7) {
+                        // 下部エリアのタッチはスライディング
+                        keys.ArrowDown = true;
+                    } else if (y < canvas.height * 0.3) {
+                        // 上部エリアのタッチはジャンプ
+                        keys.ArrowUp = true;
+                    } else if (x < canvas.width * 0.3) {
+                        // 左エリアのタッチは左移動
+                        keys.ArrowLeft = true;
+                    } else if (x > canvas.width * 0.7) {
+                        // 右エリアのタッチは右移動
+                        keys.ArrowRight = true;
+                    }
+                });
+                
+                canvas.addEventListener('touchend', () => {
+                    // タッチ終了時にすべてのキー入力をリセット
+                    keys.ArrowLeft = false;
+                    keys.ArrowRight = false;
+                    keys.ArrowUp = false;
+                    keys.ArrowDown = false;
+                });
+                
+                // ゲーム開始ボタン
+                startButton.addEventListener('click', () => {
+                    startGame();
+                });
+                
+                // リスタートボタン
+                restartButton.addEventListener('click', () => {
+                    restartGame();
+                });
+                
+                // ウィンドウリサイズ
+                window.addEventListener('resize', resizeCanvas);
+            }
+            
+            // プレイヤークラス
+            class Player {
+                constructor(x, y, width, height) {
+                    this.x = x;
+                    this.y = y;
+                    this.width = width;
+                    this.height = height;
+                    this.lane = 1; // 中央レーン
+                    this.isJumping = false;
+                    this.isSliding = false;
+                    this.jumpVelocity = 0;
+                    this.slideTime = 0;
+                }
+                
+                // 左に移動
+                moveLeft() {
+                    if (this.lane > 0) {
+                        this.lane--;
+                    }
+                }
+                
+                // 右に移動
+                moveRight() {
+                    if (this.lane < GAME_CONFIG.lanes - 1) {
+                        this.lane++;
+                    }
+                }
+                
+                // ジャンプ
+                jump() {
+                    if (!this.isJumping) {
+                        this.isJumping = true;
+                        this.jumpVelocity = GAME_CONFIG.jumpForce;
+                    }
+                }
+                
+                // スライディング
+                slide() {
+                    if (!this.isSliding) {
+                        this.isSliding = true;
+                        this.slideTime = 500; // 0.5秒間スライディング
+                        this.height = GAME_CONFIG.playerHeight / 2;
+                    }
+                }
+                
+                // プレイヤーの更新
+                update(deltaTime) {
+                    // 左右移動
+                    if (keys.ArrowLeft) {
+                        this.moveLeft();
+                    } else if (keys.ArrowRight) {
+                        this.moveRight();
+                    }
+                    
+                    // ジャンプ
+                    if (keys.ArrowUp && !this.isJumping) {
+                        this.jump();
+                    }
+                    
+                    // ジャンプ中の処理
+                    if (this.isJumping) {
+                        this.y -= this.jumpVelocity;
+                        this.jumpVelocity -= GAME_CONFIG.gravity;
+                        
+                        // 着地判定
+                        if (this.y >= canvas.height - 100) {
+                            this.y = canvas.height - 100;
+                            this.isJumping = false;
+                            this.jumpVelocity = 0;
+                        }
+                    }
+                    
+                    // スライディング
+                    if (keys.ArrowDown && !this.isJumping && !this.isSliding) {
+                        this.slide();
+                    }
+                    
+                    // スライディング中の処理
+                    if (this.isSliding) {
+                        this.slideTime -= deltaTime;
+                        if (this.slideTime <= 0) {
+                            this.isSliding = false;
+                            this.height = GAME_CONFIG.playerHeight;
+                        }
+                    }
+                    
+                    // レーンに基づいてX座標を更新
+                    const targetX = (this.lane * GAME_CONFIG.laneWidth) + (GAME_CONFIG.laneWidth / 2);
+                    this.x = targetX;
+                }
+                
+                // プレイヤーの描画
+                draw() {
+                    ctx.fillStyle = '#FF4081';
+                    ctx.fillRect(this.x - this.width / 2, this.y - this.height, this.width, this.height);
+                }
+            }
+            
+            // 障害物クラス
+            class Obstacle {
+                constructor(lane, y) {
+                    this.lane = lane;
+                    this.y = y;
+                    this.width = 40;
+                    this.height = 40;
+                    this.x = (lane * GAME_CONFIG.laneWidth) + (GAME_CONFIG.laneWidth / 2);
+                }
+                
+                // 障害物の更新
+                update() {
+                    this.y += speed;
+                    this.x = (this.lane * GAME_CONFIG.laneWidth) + (GAME_CONFIG.laneWidth / 2);
+                }
+                
+                // 障害物の描画
+                draw() {
+                    ctx.fillStyle = '#8B4513';
+                    ctx.fillRect(this.x - this.width / 2, this.y - this.height, this.width, this.height);
+                }
+            }
+            
+            // コインクラス
+            class Coin {
+                constructor(lane, y) {
+                    this.lane = lane;
+                    this.y = y;
+                    this.width = 30;
+                    this.height = 30;
+                    this.x = (lane * GAME_CONFIG.laneWidth) + (GAME_CONFIG.laneWidth / 2);
+                    this.collected = false;
+                }
+                
+                // コインの更新
+                update() {
+                    this.y += speed;
+                    this.x = (this.lane * GAME_CONFIG.laneWidth) + (GAME_CONFIG.laneWidth / 2);
+                }
+                
+                // コインの描画
+                draw() {
+                    if (!this.collected) {
+                        ctx.fillStyle = '#FFD700';
+                        ctx.beginPath();
+                        ctx.arc(this.x, this.y - this.height / 2, this.width / 2, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                }
+            }
+            
+            // アセットの読み込み
+            function loadAssets() {
+                // 仮のアセット読み込み処理
+                progressBar.style.width = '100%';
+                setTimeout(() => {
+                    loadingScreen.style.display = 'none';
+                    gameState = 1; // スタート画面
+                    startScreen.style.display = 'flex';
+                }, 1000);
+            }
+            
+            // ゲーム開始
+            function startGame() {
+                gameState = 2; // プレイ中
+                startScreen.style.display = 'none';
+                playScreen.style.display = 'block';
+                
+                // プレイヤーの初期化
+                player = new Player(
+                    canvas.width / 2,
+                    canvas.height - 100,
+                    GAME_CONFIG.playerWidth,
+                    GAME_CONFIG.playerHeight
+                );
+                
+                // ゲーム変数の初期化
+                score = 0;
+                coins = 0;
+                distance = 0;
+                speed = GAME_CONFIG.initialSpeed;
+                obstacles = [];
+                coinItems = [];
+                
+                // ゲームループの開始
+                lastTime = performance.now();
+                requestAnimationFrame(gameLoop);
+            }
+            
+            // ゲームオーバー
+            function gameOver() {
+                gameState = 3; // ゲームオーバー
+                finalScoreElement.textContent = Math.floor(score);
+                
+                // ハイスコアの更新
+                if (score > highScore) {
+                    highScore = score;
+                    saveHighScore();
+                }
+                
+                highScoreElement.textContent = Math.floor(highScore);
+                gameOverScreen.style.display = 'flex';
+            }
+            
+            // ゲームの再開
+            function restartGame() {
+                gameOverScreen.style.display = 'none';
+                startGame();
+            }
+            
+            // ハイスコアの取得
+            function getHighScore() {
+                const highScore = localStorage.getItem('japanRunnerHighScore');
+                return highScore ? parseInt(highScore) : 0;
+            }
+            
+            // ハイスコアの保存
+            function saveHighScore() {
+                localStorage.setItem('japanRunnerHighScore', highScore.toString());
+            }
+            
+            // 障害物の生成
+            function generateObstacles() {
+                // 一定確率で障害物を生成
+                if (Math.random() < GAME_CONFIG.obstacleChance) {
+                    // ランダムなレーンに障害物を生成
+                    const lane = Math.floor(Math.random() * GAME_CONFIG.lanes);
+                    const obstacle = new Obstacle(lane, -50);
+                    obstacles.push(obstacle);
+                }
+                
+                // 一定確率でコインを生成
+                if (Math.random() < GAME_CONFIG.coinChance) {
+                    // ランダムなレーンにコインを生成
+                    const lane = Math.floor(Math.random() * GAME_CONFIG.lanes);
+                    const coin = new Coin(lane, -50);
+                    coinItems.push(coin);
+                }
+            }
+            
+            // 衝突判定
+            function checkCollision(a, b) {
+                return (
+                    a.x - a.width / 2 < b.x + b.width / 2 &&
+                    a.x + a.width / 2 > b.x - b.width / 2 &&
+                    a.y - a.height < b.y &&
+                    a.y > b.y - b.height
+                );
+            }
+            
+            // ゲームループ
+            function gameLoop(currentTime) {
+                // 時間差分の計算
+                const deltaTime = currentTime - lastTime;
+                lastTime = currentTime;
+                
+                // ゲームが実行中の場合のみ更新
+                if (gameState === 2) {
+                    // ゲーム状態の更新
+                    update(deltaTime);
+                    
+                    // 描画
+                    render();
+                    
+                    // 次のフレームをリクエスト
+                    requestAnimationFrame(gameLoop);
+                }
+            }
+            
+            // ゲーム状態の更新
+            function update(deltaTime) {
+                // プレイヤーの更新
+                player.update(deltaTime);
+                
+                // 速度の増加
+                speed += GAME_CONFIG.speedIncrement * deltaTime;
+                if (speed > GAME_CONFIG.maxSpeed) {
+                    speed = GAME_CONFIG.maxSpeed;
+                }
+                
+                // 距離の更新
+                distance += speed * 0.1;
+                distanceElement.textContent = Math.floor(distance);
+                
+                // スコアの更新
+                score += 0.1 * speed;
+                scoreElement.textContent = Math.floor(score);
+                
+                // 障害物の生成
+                generateObstacles();
+                
+                // 障害物の更新
+                for (let i = obstacles.length - 1; i >= 0; i--) {
+                    const obstacle = obstacles[i];
+                    obstacle.update();
+                    
+                    // 画面外に出た障害物の削除
+                    if (obstacle.y > canvas.height) {
+                        obstacles.splice(i, 1);
+                        continue;
+                    }
+                    
+                    // 衝突判定
+                    if (checkCollision(player, obstacle)) {
+                        gameOver();
+                        return;
+                    }
+                }
+                
+                // コインの更新
+                for (let i = coinItems.length - 1; i >= 0; i--) {
+                    const coin = coinItems[i];
+                    coin.update();
+                    
+                    // 画面外に出たコインの削除
+                    if (coin.y > canvas.height) {
+                        coinItems.splice(i, 1);
+                        continue;
+                    }
+                    
+                    // コイン収集判定
+                    if (!coin.collected && checkCollision(player, coin)) {
+                        coin.collected = true;
+                        coins += GAME_CONFIG.coinValue;
+                        coinsElement.textContent = coins;
+                        score += GAME_CONFIG.coinValue * 10;
+                        
+                        // コインを削除
+                        coinItems.splice(i, 1);
+                    }
+                }
+            }
+            
+            // ゲームの描画
+            function render() {
+                // キャンバスのクリア
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                // 背景の描画
+                ctx.fillStyle = '#87CEEB';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                // 地面の描画
+                ctx.fillStyle = '#8BC34A';
+                ctx.fillRect(0, canvas.height - 50, canvas.width, 50);
+                
+                // レーンの描画
+                ctx.strokeStyle = '#FFF';
+                ctx.lineWidth = 2;
+                for (let i = 1; i < GAME_CONFIG.lanes; i++) {
+                    const x = i * GAME_CONFIG.laneWidth;
+                    ctx.beginPath();
+                    ctx.moveTo(x, 0);
+                    ctx.lineTo(x, canvas.height - 50);
+                    ctx.stroke();
+                }
+                
+                // 障害物の描画
+                for (const obstacle of obstacles) {
+                    obstacle.draw();
+                }
+                
+                // コインの描画
+                for (const coin of coinItems) {
+                    coin.draw();
+                }
+                
+                // プレイヤーの描画
+                player.draw();
+            }
+            
+            // 初期化
+            function init() {
+                resizeCanvas();
+                setupEventListeners();
+                loadAssets();
+                console.log('ゲームが初期化されました');
+            }
+            
+            // ゲームの初期化
+            init();
         });
     </script>
 </body>
