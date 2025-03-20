@@ -776,3 +776,47 @@
     </script>
 </body>
 </html>
+// 画像アセットの読み込み
+const IMAGES = {};
+const ASSET_PATHS = {
+    player: 'assets/player.png',
+    background: 'assets/background.png',
+    obstacles: {
+        torii: 'assets/torii.png',
+        stone: 'assets/stone-lantern.png'
+    },
+    coins: 'assets/coin.png'
+};
+
+// 画像の読み込み関数
+function loadImages() {
+    const promises = [];
+    for (const key in ASSET_PATHS) {
+        if (typeof ASSET_PATHS[key] === 'object') {
+            IMAGES[key] = {};
+            for (const subKey in ASSET_PATHS[key]) {
+                promises.push(
+                    loadImage(ASSET_PATHS[key][subKey]).then(img => {
+                        IMAGES[key][subKey] = img;
+                    })
+                );
+            }
+        } else {
+            promises.push(
+                loadImage(ASSET_PATHS[key]).then(img => {
+                    IMAGES[key] = img;
+                })
+            );
+        }
+    }
+    return Promise.all(promises);
+}
+
+function loadImage(src) {
+    return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => resolve(img);
+        img.onerror = reject;
+        img.src = src;
+    });
+}
